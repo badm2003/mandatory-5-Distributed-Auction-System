@@ -13,6 +13,7 @@ service Auction {
 
 service ReplicateService {
     rpc Replicate(AuctionState) returns (Acknowledgement);
+    rpc Commit(CommitRequest) returns (google.protobuf.Empty);
 }
 
 message BidRequest {
@@ -30,4 +31,13 @@ message ResultReply {
 message AuctionState {
     int64 seq = 1;
     int64 bid = 2;
+}
+
+message CommitRequest {
+    int64 seq = 1;
+}
+
+
+message Heartbeat {
+    bool reply = 1;
 }

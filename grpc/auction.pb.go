@@ -206,6 +206,94 @@ func (x *AuctionState) GetBid() int64 {
 	return 0
 }
 
+type CommitRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           int64                  `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitRequest) Reset() {
+	*x = CommitRequest{}
+	mi := &file_auction_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitRequest) ProtoMessage() {}
+
+func (x *CommitRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auction_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitRequest.ProtoReflect.Descriptor instead.
+func (*CommitRequest) Descriptor() ([]byte, []int) {
+	return file_auction_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CommitRequest) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+type Heartbeat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Reply         bool                   `protobuf:"varint,1,opt,name=reply,proto3" json:"reply,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Heartbeat) Reset() {
+	*x = Heartbeat{}
+	mi := &file_auction_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Heartbeat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Heartbeat) ProtoMessage() {}
+
+func (x *Heartbeat) ProtoReflect() protoreflect.Message {
+	mi := &file_auction_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Heartbeat.ProtoReflect.Descriptor instead.
+func (*Heartbeat) Descriptor() ([]byte, []int) {
+	return file_auction_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Heartbeat) GetReply() bool {
+	if x != nil {
+		return x.Reply
+	}
+	return false
+}
+
 var File_auction_proto protoreflect.FileDescriptor
 
 const file_auction_proto_rawDesc = "" +
@@ -220,12 +308,17 @@ const file_auction_proto_rawDesc = "" +
 	"\aoutcome\x18\x01 \x01(\x03R\aoutcome\"2\n" +
 	"\fAuctionState\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x03R\x03seq\x12\x10\n" +
-	"\x03bid\x18\x02 \x01(\x03R\x03bid2n\n" +
+	"\x03bid\x18\x02 \x01(\x03R\x03bid\"!\n" +
+	"\rCommitRequest\x12\x10\n" +
+	"\x03seq\x18\x01 \x01(\x03R\x03seq\"!\n" +
+	"\tHeartbeat\x12\x14\n" +
+	"\x05reply\x18\x01 \x01(\bR\x05reply2n\n" +
 	"\aAuction\x12.\n" +
 	"\x03Bid\x12\x10.grpc.BidRequest\x1a\x15.grpc.Acknowledgement\x123\n" +
-	"\x06Result\x12\x16.google.protobuf.Empty\x1a\x11.grpc.ResultReply2J\n" +
+	"\x06Result\x12\x16.google.protobuf.Empty\x1a\x11.grpc.ResultReply2\x81\x01\n" +
 	"\x10ReplicateService\x126\n" +
-	"\tReplicate\x12\x12.grpc.AuctionState\x1a\x15.grpc.AcknowledgementB\bZ\x06./grpcb\x06proto3"
+	"\tReplicate\x12\x12.grpc.AuctionState\x1a\x15.grpc.Acknowledgement\x125\n" +
+	"\x06Commit\x12\x13.grpc.CommitRequest\x1a\x16.google.protobuf.EmptyB\bZ\x06./grpcb\x06proto3"
 
 var (
 	file_auction_proto_rawDescOnce sync.Once
@@ -239,23 +332,27 @@ func file_auction_proto_rawDescGZIP() []byte {
 	return file_auction_proto_rawDescData
 }
 
-var file_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_auction_proto_goTypes = []any{
 	(*BidRequest)(nil),      // 0: grpc.BidRequest
 	(*Acknowledgement)(nil), // 1: grpc.Acknowledgement
 	(*ResultReply)(nil),     // 2: grpc.ResultReply
 	(*AuctionState)(nil),    // 3: grpc.AuctionState
-	(*emptypb.Empty)(nil),   // 4: google.protobuf.Empty
+	(*CommitRequest)(nil),   // 4: grpc.CommitRequest
+	(*Heartbeat)(nil),       // 5: grpc.Heartbeat
+	(*emptypb.Empty)(nil),   // 6: google.protobuf.Empty
 }
 var file_auction_proto_depIdxs = []int32{
 	0, // 0: grpc.Auction.Bid:input_type -> grpc.BidRequest
-	4, // 1: grpc.Auction.Result:input_type -> google.protobuf.Empty
+	6, // 1: grpc.Auction.Result:input_type -> google.protobuf.Empty
 	3, // 2: grpc.ReplicateService.Replicate:input_type -> grpc.AuctionState
-	1, // 3: grpc.Auction.Bid:output_type -> grpc.Acknowledgement
-	2, // 4: grpc.Auction.Result:output_type -> grpc.ResultReply
-	1, // 5: grpc.ReplicateService.Replicate:output_type -> grpc.Acknowledgement
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	4, // 3: grpc.ReplicateService.Commit:input_type -> grpc.CommitRequest
+	1, // 4: grpc.Auction.Bid:output_type -> grpc.Acknowledgement
+	2, // 5: grpc.Auction.Result:output_type -> grpc.ResultReply
+	1, // 6: grpc.ReplicateService.Replicate:output_type -> grpc.Acknowledgement
+	6, // 7: grpc.ReplicateService.Commit:output_type -> google.protobuf.Empty
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -272,7 +369,7 @@ func file_auction_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auction_proto_rawDesc), len(file_auction_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

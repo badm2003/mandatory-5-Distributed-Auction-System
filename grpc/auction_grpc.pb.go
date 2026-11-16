@@ -161,6 +161,7 @@ var Auction_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	ReplicateService_Replicate_FullMethodName = "/grpc.ReplicateService/Replicate"
+	ReplicateService_Commit_FullMethodName    = "/grpc.ReplicateService/Commit"
 )
 
 // ReplicateServiceClient is the client API for ReplicateService service.
@@ -168,6 +169,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReplicateServiceClient interface {
 	Replicate(ctx context.Context, in *AuctionState, opts ...grpc.CallOption) (*Acknowledgement, error)
+	Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type replicateServiceClient struct {
@@ -188,11 +190,22 @@ func (c *replicateServiceClient) Replicate(ctx context.Context, in *AuctionState
 	return out, nil
 }
 
+func (c *replicateServiceClient) Commit(ctx context.Context, in *CommitRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ReplicateService_Commit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReplicateServiceServer is the server API for ReplicateService service.
 // All implementations must embed UnimplementedReplicateServiceServer
 // for forward compatibility.
 type ReplicateServiceServer interface {
 	Replicate(context.Context, *AuctionState) (*Acknowledgement, error)
+	Commit(context.Context, *CommitRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedReplicateServiceServer()
 }
 
@@ -205,6 +218,9 @@ type UnimplementedReplicateServiceServer struct{}
 
 func (UnimplementedReplicateServiceServer) Replicate(context.Context, *AuctionState) (*Acknowledgement, error) {
 	return nil, status.Error(codes.Unimplemented, "method Replicate not implemented")
+}
+func (UnimplementedReplicateServiceServer) Commit(context.Context, *CommitRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Commit not implemented")
 }
 func (UnimplementedReplicateServiceServer) mustEmbedUnimplementedReplicateServiceServer() {}
 func (UnimplementedReplicateServiceServer) testEmbeddedByValue()                          {}
@@ -245,6 +261,24 @@ func _ReplicateService_Replicate_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReplicateService_Commit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReplicateServiceServer).Commit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReplicateService_Commit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReplicateServiceServer).Commit(ctx, req.(*CommitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReplicateService_ServiceDesc is the grpc.ServiceDesc for ReplicateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -255,6 +289,10 @@ var ReplicateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Replicate",
 			Handler:    _ReplicateService_Replicate_Handler,
+		},
+		{
+			MethodName: "Commit",
+			Handler:    _ReplicateService_Commit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
