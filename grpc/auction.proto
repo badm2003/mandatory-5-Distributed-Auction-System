@@ -5,6 +5,15 @@ option go_package = "./grpc";
 
 package grpc;
 
+service Registry {
+    rpc Register(RegistrationRequest) returns (RegistrationReply);
+}
+
+service Election {
+    rpc Election(google.protobuf.Empty) returns (Acknowledgement);
+    rpc Elected(google.protobuf.Empty) returns (Acknowledgement);
+    rpc Heartbeat(google.protobuf.Empty) returns (Acknowledgement);
+}
 
 service Auction {
     rpc Bid(BidRequest) returns (Acknowledgement);
@@ -38,6 +47,27 @@ message CommitRequest {
 }
 
 
-message Heartbeat {
-    bool reply = 1;
+// -----------------------------------------------------
+// Election Serivce Messages
+// -----------------------------------------------------
+
+message ElectionRequest {
+    repeated int32 ports = 1;
+}
+
+message ElectedRequest {
+    int32 leaderPort = 1;
+    repeated int32 ports = 2;
+}
+
+// -----------------------------------------------------
+// Registry Service Messages
+// -----------------------------------------------------
+
+message RegistrationRequest {
+    int32 port = 1;
+}
+
+message RegistrationReply {
+    repeated int32 ports = 1;
 }

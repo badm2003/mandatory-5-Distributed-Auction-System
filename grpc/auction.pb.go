@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.12
 // 	protoc        v7.36.2
-// source: auction.proto
+// source: grpc/auction.proto
 
 package grpc
 
@@ -31,7 +31,7 @@ type BidRequest struct {
 
 func (x *BidRequest) Reset() {
 	*x = BidRequest{}
-	mi := &file_auction_proto_msgTypes[0]
+	mi := &file_grpc_auction_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *BidRequest) String() string {
 func (*BidRequest) ProtoMessage() {}
 
 func (x *BidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[0]
+	mi := &file_grpc_auction_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *BidRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BidRequest.ProtoReflect.Descriptor instead.
 func (*BidRequest) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{0}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *BidRequest) GetAmount() int64 {
@@ -75,7 +75,7 @@ type Acknowledgement struct {
 
 func (x *Acknowledgement) Reset() {
 	*x = Acknowledgement{}
-	mi := &file_auction_proto_msgTypes[1]
+	mi := &file_grpc_auction_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +87,7 @@ func (x *Acknowledgement) String() string {
 func (*Acknowledgement) ProtoMessage() {}
 
 func (x *Acknowledgement) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[1]
+	mi := &file_grpc_auction_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +100,7 @@ func (x *Acknowledgement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Acknowledgement.ProtoReflect.Descriptor instead.
 func (*Acknowledgement) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{1}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Acknowledgement) GetReply() string {
@@ -119,7 +119,7 @@ type ResultReply struct {
 
 func (x *ResultReply) Reset() {
 	*x = ResultReply{}
-	mi := &file_auction_proto_msgTypes[2]
+	mi := &file_grpc_auction_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +131,7 @@ func (x *ResultReply) String() string {
 func (*ResultReply) ProtoMessage() {}
 
 func (x *ResultReply) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[2]
+	mi := &file_grpc_auction_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +144,7 @@ func (x *ResultReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultReply.ProtoReflect.Descriptor instead.
 func (*ResultReply) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{2}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ResultReply) GetOutcome() int64 {
@@ -164,7 +164,7 @@ type AuctionState struct {
 
 func (x *AuctionState) Reset() {
 	*x = AuctionState{}
-	mi := &file_auction_proto_msgTypes[3]
+	mi := &file_grpc_auction_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -176,7 +176,7 @@ func (x *AuctionState) String() string {
 func (*AuctionState) ProtoMessage() {}
 
 func (x *AuctionState) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[3]
+	mi := &file_grpc_auction_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,7 +189,7 @@ func (x *AuctionState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuctionState.ProtoReflect.Descriptor instead.
 func (*AuctionState) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{3}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AuctionState) GetSeq() int64 {
@@ -215,7 +215,7 @@ type CommitRequest struct {
 
 func (x *CommitRequest) Reset() {
 	*x = CommitRequest{}
-	mi := &file_auction_proto_msgTypes[4]
+	mi := &file_grpc_auction_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -227,7 +227,7 @@ func (x *CommitRequest) String() string {
 func (*CommitRequest) ProtoMessage() {}
 
 func (x *CommitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[4]
+	mi := &file_grpc_auction_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +240,7 @@ func (x *CommitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitRequest.ProtoReflect.Descriptor instead.
 func (*CommitRequest) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{4}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CommitRequest) GetSeq() int64 {
@@ -259,7 +259,7 @@ type Heartbeat struct {
 
 func (x *Heartbeat) Reset() {
 	*x = Heartbeat{}
-	mi := &file_auction_proto_msgTypes[5]
+	mi := &file_grpc_auction_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -271,7 +271,7 @@ func (x *Heartbeat) String() string {
 func (*Heartbeat) ProtoMessage() {}
 
 func (x *Heartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[5]
+	mi := &file_grpc_auction_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -284,7 +284,7 @@ func (x *Heartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Heartbeat.ProtoReflect.Descriptor instead.
 func (*Heartbeat) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{5}
+	return file_grpc_auction_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Heartbeat) GetReply() bool {
@@ -294,11 +294,99 @@ func (x *Heartbeat) GetReply() bool {
 	return false
 }
 
-var File_auction_proto protoreflect.FileDescriptor
+type RegistrationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Port          int32                  `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_auction_proto_rawDesc = "" +
+func (x *RegistrationRequest) Reset() {
+	*x = RegistrationRequest{}
+	mi := &file_grpc_auction_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegistrationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegistrationRequest) ProtoMessage() {}
+
+func (x *RegistrationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_auction_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegistrationRequest.ProtoReflect.Descriptor instead.
+func (*RegistrationRequest) Descriptor() ([]byte, []int) {
+	return file_grpc_auction_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RegistrationRequest) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+type RegistrationReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ports         []int32                `protobuf:"varint,1,rep,packed,name=ports,proto3" json:"ports,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegistrationReply) Reset() {
+	*x = RegistrationReply{}
+	mi := &file_grpc_auction_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegistrationReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegistrationReply) ProtoMessage() {}
+
+func (x *RegistrationReply) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_auction_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegistrationReply.ProtoReflect.Descriptor instead.
+func (*RegistrationReply) Descriptor() ([]byte, []int) {
+	return file_grpc_auction_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *RegistrationReply) GetPorts() []int32 {
+	if x != nil {
+		return x.Ports
+	}
+	return nil
+}
+
+var File_grpc_auction_proto protoreflect.FileDescriptor
+
+const file_grpc_auction_proto_rawDesc = "" +
 	"\n" +
-	"\rauction.proto\x12\x04grpc\x1a\x1bgoogle/protobuf/empty.proto\"$\n" +
+	"\x12grpc/auction.proto\x12\x04grpc\x1a\x1bgoogle/protobuf/empty.proto\"$\n" +
 	"\n" +
 	"BidRequest\x12\x16\n" +
 	"\x06amount\x18\x01 \x01(\x03R\x06amount\"'\n" +
@@ -312,7 +400,13 @@ const file_auction_proto_rawDesc = "" +
 	"\rCommitRequest\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x03R\x03seq\"!\n" +
 	"\tHeartbeat\x12\x14\n" +
-	"\x05reply\x18\x01 \x01(\bR\x05reply2n\n" +
+	"\x05reply\x18\x01 \x01(\bR\x05reply\")\n" +
+	"\x13RegistrationRequest\x12\x12\n" +
+	"\x04port\x18\x01 \x01(\x05R\x04port\")\n" +
+	"\x11RegistrationReply\x12\x14\n" +
+	"\x05ports\x18\x01 \x03(\x05R\x05ports2J\n" +
+	"\bRegistry\x12>\n" +
+	"\bRegister\x12\x19.grpc.RegistrationRequest\x1a\x17.grpc.RegistrationReply2n\n" +
 	"\aAuction\x12.\n" +
 	"\x03Bid\x12\x10.grpc.BidRequest\x1a\x15.grpc.Acknowledgement\x123\n" +
 	"\x06Result\x12\x16.google.protobuf.Empty\x1a\x11.grpc.ResultReply2\x81\x01\n" +
@@ -321,63 +415,67 @@ const file_auction_proto_rawDesc = "" +
 	"\x06Commit\x12\x13.grpc.CommitRequest\x1a\x16.google.protobuf.EmptyB\bZ\x06./grpcb\x06proto3"
 
 var (
-	file_auction_proto_rawDescOnce sync.Once
-	file_auction_proto_rawDescData []byte
+	file_grpc_auction_proto_rawDescOnce sync.Once
+	file_grpc_auction_proto_rawDescData []byte
 )
 
-func file_auction_proto_rawDescGZIP() []byte {
-	file_auction_proto_rawDescOnce.Do(func() {
-		file_auction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auction_proto_rawDesc), len(file_auction_proto_rawDesc)))
+func file_grpc_auction_proto_rawDescGZIP() []byte {
+	file_grpc_auction_proto_rawDescOnce.Do(func() {
+		file_grpc_auction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_grpc_auction_proto_rawDesc), len(file_grpc_auction_proto_rawDesc)))
 	})
-	return file_auction_proto_rawDescData
+	return file_grpc_auction_proto_rawDescData
 }
 
-var file_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_auction_proto_goTypes = []any{
-	(*BidRequest)(nil),      // 0: grpc.BidRequest
-	(*Acknowledgement)(nil), // 1: grpc.Acknowledgement
-	(*ResultReply)(nil),     // 2: grpc.ResultReply
-	(*AuctionState)(nil),    // 3: grpc.AuctionState
-	(*CommitRequest)(nil),   // 4: grpc.CommitRequest
-	(*Heartbeat)(nil),       // 5: grpc.Heartbeat
-	(*emptypb.Empty)(nil),   // 6: google.protobuf.Empty
+var file_grpc_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_grpc_auction_proto_goTypes = []any{
+	(*BidRequest)(nil),          // 0: grpc.BidRequest
+	(*Acknowledgement)(nil),     // 1: grpc.Acknowledgement
+	(*ResultReply)(nil),         // 2: grpc.ResultReply
+	(*AuctionState)(nil),        // 3: grpc.AuctionState
+	(*CommitRequest)(nil),       // 4: grpc.CommitRequest
+	(*Heartbeat)(nil),           // 5: grpc.Heartbeat
+	(*RegistrationRequest)(nil), // 6: grpc.RegistrationRequest
+	(*RegistrationReply)(nil),   // 7: grpc.RegistrationReply
+	(*emptypb.Empty)(nil),       // 8: google.protobuf.Empty
 }
-var file_auction_proto_depIdxs = []int32{
-	0, // 0: grpc.Auction.Bid:input_type -> grpc.BidRequest
-	6, // 1: grpc.Auction.Result:input_type -> google.protobuf.Empty
-	3, // 2: grpc.ReplicateService.Replicate:input_type -> grpc.AuctionState
-	4, // 3: grpc.ReplicateService.Commit:input_type -> grpc.CommitRequest
-	1, // 4: grpc.Auction.Bid:output_type -> grpc.Acknowledgement
-	2, // 5: grpc.Auction.Result:output_type -> grpc.ResultReply
-	1, // 6: grpc.ReplicateService.Replicate:output_type -> grpc.Acknowledgement
-	6, // 7: grpc.ReplicateService.Commit:output_type -> google.protobuf.Empty
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+var file_grpc_auction_proto_depIdxs = []int32{
+	6, // 0: grpc.Registry.Register:input_type -> grpc.RegistrationRequest
+	0, // 1: grpc.Auction.Bid:input_type -> grpc.BidRequest
+	8, // 2: grpc.Auction.Result:input_type -> google.protobuf.Empty
+	3, // 3: grpc.ReplicateService.Replicate:input_type -> grpc.AuctionState
+	4, // 4: grpc.ReplicateService.Commit:input_type -> grpc.CommitRequest
+	7, // 5: grpc.Registry.Register:output_type -> grpc.RegistrationReply
+	1, // 6: grpc.Auction.Bid:output_type -> grpc.Acknowledgement
+	2, // 7: grpc.Auction.Result:output_type -> grpc.ResultReply
+	1, // 8: grpc.ReplicateService.Replicate:output_type -> grpc.Acknowledgement
+	8, // 9: grpc.ReplicateService.Commit:output_type -> google.protobuf.Empty
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_auction_proto_init() }
-func file_auction_proto_init() {
-	if File_auction_proto != nil {
+func init() { file_grpc_auction_proto_init() }
+func file_grpc_auction_proto_init() {
+	if File_grpc_auction_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auction_proto_rawDesc), len(file_auction_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grpc_auction_proto_rawDesc), len(file_grpc_auction_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
-		GoTypes:           file_auction_proto_goTypes,
-		DependencyIndexes: file_auction_proto_depIdxs,
-		MessageInfos:      file_auction_proto_msgTypes,
+		GoTypes:           file_grpc_auction_proto_goTypes,
+		DependencyIndexes: file_grpc_auction_proto_depIdxs,
+		MessageInfos:      file_grpc_auction_proto_msgTypes,
 	}.Build()
-	File_auction_proto = out.File
-	file_auction_proto_goTypes = nil
-	file_auction_proto_depIdxs = nil
+	File_grpc_auction_proto = out.File
+	file_grpc_auction_proto_goTypes = nil
+	file_grpc_auction_proto_depIdxs = nil
 }
