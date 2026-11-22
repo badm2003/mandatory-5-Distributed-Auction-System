@@ -10,8 +10,8 @@ service Registry {
 }
 
 service Election {
-    rpc Election(google.protobuf.Empty) returns (Acknowledgement);
-    rpc Elected(google.protobuf.Empty) returns (Acknowledgement);
+    rpc Election(ElectionRequest) returns (Acknowledgement);
+    rpc Elected(ElectedRequest) returns (Acknowledgement);
     rpc Heartbeat(google.protobuf.Empty) returns (Acknowledgement);
 }
 
@@ -53,6 +53,7 @@ message CommitRequest {
 
 message ElectionRequest {
     repeated int32 ports = 1;
+    int32 startingPort = 2;
 }
 
 message ElectedRequest {
