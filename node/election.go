@@ -145,7 +145,7 @@ func (s *electionServer) Elected(ctx context.Context, in *pb.ElectedRequest) (*p
 
 func (n *Node) ForwardElectionMessage(electionRequest *pb.ElectionRequest) {
 	n.electionState.mu.Lock()
-	nextLogicalPeer := n.getNextLogicalPeer()
+	nextLogicalPeer := n.GetNextLogicalPeer()
 	client := n.conns[nextLogicalPeer]
 	n.electionState.mu.Unlock()
 	if nextLogicalPeer == -1 {
@@ -195,7 +195,7 @@ func (n *Node) ForwardElectionMessage(electionRequest *pb.ElectionRequest) {
 	}
 }
 
-func (n *Node) getNextLogicalPeer() int32 {
+func (n *Node) GetNextLogicalPeer() int32 {
 	// Find the next logical peer in the list of peers
 	// This is really just finding yourself in the list of peers and returning the next one, or the first one if you're the last.
 	for i, peer := range n.electionState.peers {
@@ -254,7 +254,7 @@ func (n *Node) StartElection() {
 	log.Printf("Node on port %d starting election...", n.port)
 
 	n.electionState.mu.Lock()
-	nextLogicalPeer := n.getNextLogicalPeer()
+	nextLogicalPeer := n.GetNextLogicalPeer()
 	n.electionState.electing = true
 	n.electionState.electionStartTime = time.Now()
 	n.electionState.mu.Unlock()
