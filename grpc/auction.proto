@@ -21,6 +21,7 @@ service Auction {
 }
 
 service ReplicateService {
+    rpc Prepare(PrepareRequest) returns (AuctionState);
     rpc Replicate(AuctionState) returns (Acknowledgement);
     rpc Commit(CommitRequest) returns (google.protobuf.Empty);
 }
@@ -35,11 +36,23 @@ message Acknowledgement {
 
 message ResultReply {
     int64 outcome = 1;
+    bool closed = 2;
+    string winner = 3;
+    bool has_bid = 4;
+}
+
+message PrepareRequest {
+    int32 writer_port = 1;
 }
 
 message AuctionState {
     int64 seq = 1;
     int64 bid = 2;
+    string highest_bidder = 3;
+    repeated string bidders = 4;
+    bool closed = 5;
+    bool has_bid = 6;
+    int32 writer_port = 7;
 }
 
 message CommitRequest {
@@ -71,4 +84,5 @@ message RegistrationRequest {
 
 message RegistrationReply {
     repeated int32 ports = 1;
+    int64 deadline_unix_nano = 2;
 }

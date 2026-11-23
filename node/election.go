@@ -269,7 +269,7 @@ func (n *Node) StartElection() {
 	})
 }
 
-func (n *Node) RegisterWithRegistry(registryAddress string) {
+func (n *Node) RegisterWithRegistry(registryAddress string) *pb.RegistrationReply {
 	log.Printf("Node on port %d attempting to register with registry at %s", n.port, registryAddress)
 
 	conn, err := grpc.NewClient(registryAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -290,6 +290,7 @@ func (n *Node) RegisterWithRegistry(registryAddress string) {
 
 	n.electionState.peers = r.Ports
 	log.Printf("Node on port %d registered with registry. Peers: %v", n.port, n.electionState.peers)
+	return r
 }
 
 func (n *Node) ConnectToPeers() {
