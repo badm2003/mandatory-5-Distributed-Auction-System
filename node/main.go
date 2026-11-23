@@ -78,7 +78,7 @@ func (n *Node) registerAuctionServices(server *grpc.Server, membership *pb.Regis
 		rpcTimeout: timeout,
 		snapshot:   &pb.AuctionState{},
 	}
-	// Use original membership for quorum size, even when election drops dead peers.
+	// Keep connections for every registered peer; election supplies the live membership.
 	n.peerConns = make(map[int32]*grpc.ClientConn, len(membership.Ports)-1)
 	for _, peer := range membership.Ports {
 		if peer == n.port {

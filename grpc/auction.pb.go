@@ -317,6 +317,7 @@ func (x *AuctionState) GetWriterPort() int32 {
 type CommitRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Seq           int64                  `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
+	WriterPort    int32                  `protobuf:"varint,2,opt,name=writer_port,json=writerPort,proto3" json:"writer_port,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -354,6 +355,13 @@ func (*CommitRequest) Descriptor() ([]byte, []int) {
 func (x *CommitRequest) GetSeq() int64 {
 	if x != nil {
 		return x.Seq
+	}
+	return 0
+}
+
+func (x *CommitRequest) GetWriterPort() int32 {
+	if x != nil {
+		return x.WriterPort
 	}
 	return 0
 }
@@ -584,9 +592,11 @@ const file_grpc_auction_proto_rawDesc = "" +
 	"\x06closed\x18\x05 \x01(\bR\x06closed\x12\x17\n" +
 	"\ahas_bid\x18\x06 \x01(\bR\x06hasBid\x12\x1f\n" +
 	"\vwriter_port\x18\a \x01(\x05R\n" +
-	"writerPort\"!\n" +
+	"writerPort\"B\n" +
 	"\rCommitRequest\x12\x10\n" +
-	"\x03seq\x18\x01 \x01(\x03R\x03seq\"K\n" +
+	"\x03seq\x18\x01 \x01(\x03R\x03seq\x12\x1f\n" +
+	"\vwriter_port\x18\x02 \x01(\x05R\n" +
+	"writerPort\"K\n" +
 	"\x0fElectionRequest\x12\x14\n" +
 	"\x05ports\x18\x01 \x03(\x05R\x05ports\x12\"\n" +
 	"\fstartingPort\x18\x02 \x01(\x05R\fstartingPort\"F\n" +

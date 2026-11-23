@@ -57,6 +57,7 @@ message AuctionState {
 
 message CommitRequest {
     int64 seq = 1;
+    int32 writer_port = 2;
 }
 
 

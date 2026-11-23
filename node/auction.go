@@ -14,7 +14,7 @@ import (
 
 const bidderKey = "bidder-id"
 
-// The election layer owns leadership; auction code only reads it.
+// The election layer leads, this is isolated to auction.
 type auctionLeadership interface {
 	GetLeader() int32
 	IsElecting() bool
@@ -28,20 +28,15 @@ type auctionServer struct {
 }
 
 type auctionState struct {
-	mu         sync.Mutex
-	snapshot   *pb.AuctionState
-	deadline   time.Time
-	rpcTimeout time.Duration
+	mu          sync.Mutex
+	snapshot    *pb.AuctionState // latest staged state
+	committed   *pb.AuctionState
+	needsCommit bool
+	deadline    time.Time
+	rpcTimeout  time.Duration
 }
 
 func ack(reply string) *pb.Acknowledgement { return &pb.Acknowledgement{Reply: reply} }
-
-func (a *auctionState) closeIfDue() {
-	if !a.snapshot.Closed && !time.Now().Before(a.deadline) {
-		a.snapshot.Closed = true
-		a.snapshot.Seq++
-	}
-}
 
 func (s *auctionServer) Bid(ctx context.Context, req *pb.BidRequest) (*pb.Acknowledgement, error) {
 	ids := metadata.ValueFromIncomingContext(ctx, bidderKey)
@@ -60,30 +55,34 @@ func (s *auctionServer) Bid(ctx context.Context, req *pb.BidRequest) (*pb.Acknow
 		if conn == nil {
 			return ack("exception"), nil
 		}
-		ctx, cancel := context.WithTimeout(ctx, 3*a.rpcTimeout)
-		defer cancel()
 		ctx = metadata.AppendToOutgoingContext(ctx, bidderKey, id)
-		reply, err := pb.NewAuctionClient(conn).Bid(ctx, req)
+		reply, err := pb.NewAuctionClient(conn).Bid(ctx, req) // bid is a write so it gets sent to the leader
+
 		if err != nil {
 			return ack("exception"), nil
 		}
+
 		return reply, nil
 	}
 
 	a.mu.Lock()
 	defer a.mu.Unlock()
+
 	if s.election.IsElecting() || s.election.GetLeader() != leader {
 		return ack("exception"), nil
 	}
+
 	if ctx.Err() != nil {
 		return ack("exception"), nil
 	}
+
 	if !s.replication.prepareToServe(ctx) {
 		return ack("exception"), nil
 	}
-	a.closeIfDue()
+
+	previousSeq := a.snapshot.Seq
 	outcome := "fail"
-	if !a.snapshot.Closed {
+	if time.Now().Before(a.deadline) {
 		registered := false
 		for _, bidder := range a.snapshot.Bidders {
 			if bidder == id {
@@ -91,10 +90,12 @@ func (s *auctionServer) Bid(ctx context.Context, req *pb.BidRequest) (*pb.Acknow
 				break
 			}
 		}
+
 		if !registered {
 			a.snapshot.Bidders = append(a.snapshot.Bidders, id)
 			a.snapshot.Seq++
 		}
+
 		if !a.snapshot.HasBid || req.Amount > a.snapshot.Bid {
 			a.snapshot.Bid = req.Amount
 			a.snapshot.HighestBidder = id
@@ -102,47 +103,57 @@ func (s *auctionServer) Bid(ctx context.Context, req *pb.BidRequest) (*pb.Acknow
 			a.snapshot.Seq++
 			outcome = "success"
 		}
+
 	}
-	if !s.replication.syncState(ctx) {
+	a.needsCommit = a.snapshot.Seq != previousSeq
+	if !s.replication.finishPending(ctx) {
 		return ack("exception"), nil
 	}
 	return ack(outcome), nil
 }
 
 func (s *auctionServer) Result(ctx context.Context, req *emptypb.Empty) (*pb.ResultReply, error) {
-	leader := s.election.GetLeader()
-	if leader == 0 || s.election.IsElecting() {
-		return nil, status.Error(codes.Unavailable, "auction leader unavailable")
-	}
 	n := s.node
 	a := &n.auction
-	if n.port != leader {
-		conn := n.peerConns[leader]
-		if conn == nil {
+	for {
+		leader := s.election.GetLeader()
+		if leader == 0 || s.election.IsElecting() {
 			return nil, status.Error(codes.Unavailable, "auction leader unavailable")
 		}
-		ctx, cancel := context.WithTimeout(ctx, 3*a.rpcTimeout)
-		defer cancel()
-		return pb.NewAuctionClient(conn).Result(ctx, req)
+		a.mu.Lock()
+		if s.election.GetLeader() != leader || s.election.IsElecting() {
+			a.mu.Unlock()
+			continue
+		}
+		if n.port == leader && !s.replication.prepareToServe(ctx) {
+			a.mu.Unlock()
+			return nil, status.Error(codes.Unavailable, "auction recovery unavailable")
+		}
+		committed := a.committed
+		if committed != nil && committed.WriterPort == leader &&
+			a.snapshot.WriterPort == leader && committed.Seq == a.snapshot.Seq {
+			result := &pb.ResultReply{Outcome: committed.Bid, HasBid: committed.HasBid, Closed: !time.Now().Before(a.deadline)}
+			if result.Closed {
+				result.Winner = committed.HighestBidder
+			}
+			a.mu.Unlock()
+			return result, nil
+		}
+		pending := a.snapshot.WriterPort == leader
+
+		a.mu.Unlock()
+		if !pending {
+			// The elected leader has not installed its recovered state here yet
+			if conn := n.peerConns[leader]; conn != nil {
+				return pb.NewAuctionClient(conn).Result(ctx, req)
+			}
+			return nil, status.Error(codes.Unavailable, "auction leader unavailable")
+		}
+		// Wait for Commit, checking for an election if the writer crashed mid-bid
+		select {
+		case <-ctx.Done():
+			return nil, status.FromContextError(ctx.Err()).Err()
+		case <-time.After(10 * time.Millisecond):
+		}
 	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if s.election.IsElecting() || s.election.GetLeader() != leader {
-		return nil, status.Error(codes.Unavailable, "auction leader unavailable")
-	}
-	if ctx.Err() != nil {
-		return nil, status.FromContextError(ctx.Err()).Err()
-	}
-	if !s.replication.prepareToServe(ctx) {
-		return nil, status.Error(codes.Unavailable, "auction leadership quorum unavailable")
-	}
-	a.closeIfDue()
-	if !s.replication.syncState(ctx) {
-		return nil, status.Error(codes.Unavailable, "auction quorum unavailable")
-	}
-	result := &pb.ResultReply{Outcome: a.snapshot.Bid, HasBid: a.snapshot.HasBid, Closed: a.snapshot.Closed}
-	if result.Closed {
-		result.Winner = a.snapshot.HighestBidder
-	}
-	return result, nil
 }

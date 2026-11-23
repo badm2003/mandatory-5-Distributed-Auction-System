@@ -211,11 +211,11 @@ func (n *Node) GetNextLogicalPeer() int32 {
 
 func (n *Node) Heartbeat() {
 	for {
-		time.Sleep(5000 * time.Millisecond) // Send heartbeat every 5 seconds
+		time.Sleep(5 * time.Second) // Heartbeat interval
 
 		n.electionState.mu.Lock()
 		electing := n.electionState.electing
-		timedOut := electing && time.Since(n.electionState.electionStartTime) > 10*time.Second
+		timedOut := electing && (time.Since(n.electionState.electionStartTime) > 10*time.Second)
 		peers := n.electionState.peers
 		n.electionState.mu.Unlock()
 
@@ -258,7 +258,7 @@ func (n *Node) StartElection() {
 	n.electionState.electing = true
 	n.electionState.electionStartTime = time.Now()
 	n.electionState.mu.Unlock()
-	if nextLogicalPeer == -1 {
+	if nextLogicalPeer == -1 { // should never happen
 		log.Printf("Node on port %d failed to get next logical peer for election", n.port)
 		return
 	}
