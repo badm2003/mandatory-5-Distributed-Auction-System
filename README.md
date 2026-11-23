@@ -9,7 +9,7 @@ failure.
 # Building and Running
 To Build and Run the program:
 ```
-go run client/client.go
+go run client/client.go --nodeport=10101
 ```
 
 or to build and save the executable on disk, from the client folder run:
