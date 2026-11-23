@@ -7,12 +7,24 @@ described below, and must at least be resilient to one (1) crash
 failure.
 
 # Building and Running
-To Build and Run the program:
+Run everything from the repository root.
+
+Start the registry. By default it spawns 3 nodes and waits for them to register:
 ```
-go run client/client.go --nodeport=10101
+go run ./main.go --port=5000 --n=3
 ```
 
-or to build and save the executable on disk, from the client folder run:
+Each node logs `Node listening on port <port>`. Connect a client with a comma-separated list of node ports:
 ```
-go build client.go
+go run ./client/client.go --nodes=<port1>,<port2>,<port3>
 ```
+The client starts with the first port. If that node can't be reached, it switches to the next one in the list.
+
+Client commands: `name <text>` (required first), `bid <amount>`, `result`, `exit`.
+
+### Running nodes manually
+```
+go run ./main.go --spawn=false --n=3
+go run ./node --registry-port=5000
+```
+Run the node command once per node (3 times for `--n=3`). Optional node flags: `--port` (default: random free port), `--rpc-timeout` (default `1s`).

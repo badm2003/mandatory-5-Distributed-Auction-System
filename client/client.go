@@ -5,9 +5,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	pb "github.com/zMyLlama/mandatory-5-Distributed-Auction-System/grpc"
@@ -18,17 +18,16 @@ import (
 )
 
 func main() {
-	nodePort := flag.Int("node-port", 0, "port of the node to connect to")
+	ports := flag.String("nodes", "", "comma-separated node ports, e.g. 50001,50002,50003")
 	flag.Parse()
 
-	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", *nodePort), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("Client failed to connect: %v", err)
+	list := strings.Split(*ports, ",")
+	current := 0
+	connect := func() pb.AuctionClient {
+		conn, _ := grpc.NewClient("127.0.0.1:"+list[current], grpc.WithTransportCredentials(insecure.NewCredentials()))
+		return pb.NewAuctionClient(conn)
 	}
-
-	log.Printf("Client connected to node on port %d", *nodePort)
-
-	client := pb.NewAuctionClient(conn)
+	client := connect()
 
 	name := ""
 
@@ -54,7 +53,9 @@ func main() {
 			reply, err := client.Result(ctx, &emptypb.Empty{})
 			cancel()
 			if err != nil {
-				fmt.Printf("Result not available, try again: %v", err)
+				current = (current + 1) % len(list)
+				client = connect()
+				fmt.Println("Node unreachable, switched to", list[current], ". Try again")
 				continue
 			}
 			fmt.Printf("Result: %v\n", reply)
@@ -72,7 +73,9 @@ func main() {
 			ctx := metadata.AppendToOutgoingContext(context.Background(), "bidder-id", name)
 			reply, err := client.Bid(ctx, &pb.BidRequest{Amount: int64(amount)})
 			if err != nil {
-				fmt.Println("Error occurred while placing bid")
+				current = (current + 1) % len(list)
+				client = connect()
+				fmt.Println("Node unreachable, switched to", list[current], ". Try again")
 				continue
 			}
 			fmt.Printf("Bid result: %v\n", reply)
