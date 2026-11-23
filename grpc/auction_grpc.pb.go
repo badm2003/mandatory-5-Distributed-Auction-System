@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.36.2
-// source: auction.proto
+// source: grpc/auction.proto
 
 package grpc
 
@@ -18,6 +18,286 @@ import (
 // is compatible with the grpc package it is being compiled against.
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
+
+const (
+	Registry_Register_FullMethodName = "/grpc.Registry/Register"
+)
+
+// RegistryClient is the client API for Registry service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RegistryClient interface {
+	Register(ctx context.Context, in *RegistrationRequest, opts ...grpc.CallOption) (*RegistrationReply, error)
+}
+
+type registryClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRegistryClient(cc grpc.ClientConnInterface) RegistryClient {
+	return &registryClient{cc}
+}
+
+func (c *registryClient) Register(ctx context.Context, in *RegistrationRequest, opts ...grpc.CallOption) (*RegistrationReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegistrationReply)
+	err := c.cc.Invoke(ctx, Registry_Register_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RegistryServer is the server API for Registry service.
+// All implementations must embed UnimplementedRegistryServer
+// for forward compatibility.
+type RegistryServer interface {
+	Register(context.Context, *RegistrationRequest) (*RegistrationReply, error)
+	mustEmbedUnimplementedRegistryServer()
+}
+
+// UnimplementedRegistryServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedRegistryServer struct{}
+
+func (UnimplementedRegistryServer) Register(context.Context, *RegistrationRequest) (*RegistrationReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedRegistryServer) mustEmbedUnimplementedRegistryServer() {}
+func (UnimplementedRegistryServer) testEmbeddedByValue()                  {}
+
+// UnsafeRegistryServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RegistryServer will
+// result in compilation errors.
+type UnsafeRegistryServer interface {
+	mustEmbedUnimplementedRegistryServer()
+}
+
+func RegisterRegistryServer(s grpc.ServiceRegistrar, srv RegistryServer) {
+	// If the following call panics, it indicates UnimplementedRegistryServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&Registry_ServiceDesc, srv)
+}
+
+func _Registry_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistryServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Registry_Register_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistryServer).Register(ctx, req.(*RegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Registry_ServiceDesc is the grpc.ServiceDesc for Registry service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Registry_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc.Registry",
+	HandlerType: (*RegistryServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _Registry_Register_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "grpc/auction.proto",
+}
+
+const (
+	Election_Election_FullMethodName  = "/grpc.Election/Election"
+	Election_Elected_FullMethodName   = "/grpc.Election/Elected"
+	Election_Heartbeat_FullMethodName = "/grpc.Election/Heartbeat"
+)
+
+// ElectionClient is the client API for Election service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ElectionClient interface {
+	Election(ctx context.Context, in *ElectionRequest, opts ...grpc.CallOption) (*Acknowledgement, error)
+	Elected(ctx context.Context, in *ElectedRequest, opts ...grpc.CallOption) (*Acknowledgement, error)
+	Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Acknowledgement, error)
+}
+
+type electionClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewElectionClient(cc grpc.ClientConnInterface) ElectionClient {
+	return &electionClient{cc}
+}
+
+func (c *electionClient) Election(ctx context.Context, in *ElectionRequest, opts ...grpc.CallOption) (*Acknowledgement, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Acknowledgement)
+	err := c.cc.Invoke(ctx, Election_Election_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *electionClient) Elected(ctx context.Context, in *ElectedRequest, opts ...grpc.CallOption) (*Acknowledgement, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Acknowledgement)
+	err := c.cc.Invoke(ctx, Election_Elected_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *electionClient) Heartbeat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Acknowledgement, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Acknowledgement)
+	err := c.cc.Invoke(ctx, Election_Heartbeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ElectionServer is the server API for Election service.
+// All implementations must embed UnimplementedElectionServer
+// for forward compatibility.
+type ElectionServer interface {
+	Election(context.Context, *ElectionRequest) (*Acknowledgement, error)
+	Elected(context.Context, *ElectedRequest) (*Acknowledgement, error)
+	Heartbeat(context.Context, *emptypb.Empty) (*Acknowledgement, error)
+	mustEmbedUnimplementedElectionServer()
+}
+
+// UnimplementedElectionServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedElectionServer struct{}
+
+func (UnimplementedElectionServer) Election(context.Context, *ElectionRequest) (*Acknowledgement, error) {
+	return nil, status.Error(codes.Unimplemented, "method Election not implemented")
+}
+func (UnimplementedElectionServer) Elected(context.Context, *ElectedRequest) (*Acknowledgement, error) {
+	return nil, status.Error(codes.Unimplemented, "method Elected not implemented")
+}
+func (UnimplementedElectionServer) Heartbeat(context.Context, *emptypb.Empty) (*Acknowledgement, error) {
+	return nil, status.Error(codes.Unimplemented, "method Heartbeat not implemented")
+}
+func (UnimplementedElectionServer) mustEmbedUnimplementedElectionServer() {}
+func (UnimplementedElectionServer) testEmbeddedByValue()                  {}
+
+// UnsafeElectionServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ElectionServer will
+// result in compilation errors.
+type UnsafeElectionServer interface {
+	mustEmbedUnimplementedElectionServer()
+}
+
+func RegisterElectionServer(s grpc.ServiceRegistrar, srv ElectionServer) {
+	// If the following call panics, it indicates UnimplementedElectionServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&Election_ServiceDesc, srv)
+}
+
+func _Election_Election_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ElectionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ElectionServer).Election(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Election_Election_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ElectionServer).Election(ctx, req.(*ElectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Election_Elected_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ElectedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ElectionServer).Elected(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Election_Elected_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ElectionServer).Elected(ctx, req.(*ElectedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Election_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ElectionServer).Heartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Election_Heartbeat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ElectionServer).Heartbeat(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Election_ServiceDesc is the grpc.ServiceDesc for Election service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Election_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc.Election",
+	HandlerType: (*ElectionServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Election",
+			Handler:    _Election_Election_Handler,
+		},
+		{
+			MethodName: "Elected",
+			Handler:    _Election_Elected_Handler,
+		},
+		{
+			MethodName: "Heartbeat",
+			Handler:    _Election_Heartbeat_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "grpc/auction.proto",
+}
 
 const (
 	Auction_Bid_FullMethodName    = "/grpc.Auction/Bid"
@@ -156,7 +436,7 @@ var Auction_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auction.proto",
+	Metadata: "grpc/auction.proto",
 }
 
 const (
@@ -296,5 +576,5 @@ var ReplicateService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auction.proto",
+	Metadata: "grpc/auction.proto",
 }
