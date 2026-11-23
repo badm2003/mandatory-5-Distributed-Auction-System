@@ -14,12 +14,12 @@ import (
 )
 
 type Node struct {
-	port  int32                       // never changes so a lock is not needed for this
-	conns map[int32]pb.ElectionClient // never changes so a lock is not needed for this
+	port      int32 // this and below never changes so a lock is not needed
+	conns     map[int32]pb.ElectionClient
+	peerConns map[int32]*grpc.ClientConn
 
 	electionState electionState
-	peerConns     map[int32]*grpc.ClientConn
-	auction       auctionState
+	auctionState  auctionState
 }
 
 type electionState struct {
@@ -28,6 +28,17 @@ type electionState struct {
 	peers             []int32
 	electing          bool
 	electionStartTime time.Time
+}
+
+type auctionState struct {
+	mu           sync.Mutex
+	syncedLeader int32            // the last leader we synced with
+	snapshot     *pb.AuctionState // latest staged state
+	committed    *pb.AuctionState // latest committed state
+	needsCommit  bool
+	commitSignal chan struct{}
+	deadline     time.Time
+	rpcTimeout   time.Duration
 }
 
 func main() {
@@ -57,9 +68,6 @@ func main() {
 	pb.RegisterElectionServer(grpcServer, &electionServer{node: node})
 
 	membership := node.RegisterWithRegistry(registryAddress)
-	if len(membership.Ports) < 3 || membership.DeadlineUnixNano <= 0 {
-		log.Fatal("Invalid auction membership")
-	}
 	node.registerAuctionServices(grpcServer, membership, *rpcTimeout)
 
 	// We create our connections to our peers first and then we serve the gRPC server
@@ -73,11 +81,15 @@ func main() {
 }
 
 func (n *Node) registerAuctionServices(server *grpc.Server, membership *pb.RegistrationReply, timeout time.Duration) {
-	n.auction = auctionState{
-		deadline:   time.Unix(0, membership.DeadlineUnixNano),
-		rpcTimeout: timeout,
-		snapshot:   &pb.AuctionState{},
+	n.auctionState = auctionState{
+		deadline:     time.Unix(0, membership.DeadlineUnixNano),
+		rpcTimeout:   timeout,
+		snapshot:     &pb.AuctionState{},
+		committed:    &pb.AuctionState{},
+		needsCommit:  false,
+		commitSignal: make(chan struct{}),
 	}
+
 	// Keep connections for every registered peer; election supplies the live membership.
 	n.peerConns = make(map[int32]*grpc.ClientConn, len(membership.Ports)-1)
 	for _, peer := range membership.Ports {
@@ -90,7 +102,10 @@ func (n *Node) registerAuctionServices(server *grpc.Server, membership *pb.Regis
 		}
 		n.peerConns[peer] = conn
 	}
+
 	replica := &replicationServer{node: n}
 	pb.RegisterReplicateServiceServer(server, replica)
 	pb.RegisterAuctionServer(server, &auctionServer{node: n, election: n, replication: replica})
+
+	go n.leaderLoop()
 }

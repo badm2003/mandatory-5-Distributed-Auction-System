@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"log"
+	"sync"
 	"time"
 
 	pb "github.com/zMyLlama/mandatory-5-Distributed-Auction-System/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -14,194 +14,120 @@ import (
 type replicationServer struct {
 	pb.UnimplementedReplicateServiceServer
 	node *Node
-	// Election selects the highest surviving port. Under fail-stop with no
-	// restarts, each replacement has a lower port, hence a newer ballot.
-	// The promise and the accepted snapshot share the auction mutex.
-	promisedWriter int32
-	repairing      bool
 }
 
-func (s *replicationServer) eligible(writer int32) bool {
-	n := s.node
-	return writer > 0 && (writer == n.port || n.peerConns[writer] != nil) &&
-		!n.IsElecting() && n.GetLeader() == writer
-}
-
-func newerWriter(candidate, previous int32) bool {
-	return candidate != 0 && (previous == 0 || candidate < previous)
-}
-
-// prepareToServe runs with the auction mutex held. The surviving membership promises to
-// fence older writers and reports what it accepted before making that promise.
-func (s *replicationServer) prepareToServe(ctx context.Context) bool {
-	a := &s.node.auction
-	writer := s.node.port
-	if !s.eligible(writer) || newerWriter(s.promisedWriter, writer) {
-		return false
-	}
-	if a.snapshot.WriterPort == writer && s.promisedWriter == writer {
-		return s.finishPending(ctx)
-	}
-	s.promisedWriter = writer
-	best := a.snapshot
-	ok := contactFollowers(ctx, s.node, func(ctx context.Context, client pb.ReplicateServiceClient) (*pb.AuctionState, bool) {
-		snapshot, err := client.Prepare(ctx, &pb.PrepareRequest{WriterPort: writer})
-		return snapshot, err == nil
-	}, func(snapshot *pb.AuctionState) {
-		if newerWriter(snapshot.WriterPort, best.WriterPort) ||
-			(snapshot.WriterPort == best.WriterPort && snapshot.Seq > best.Seq) {
-			best = snapshot
-		}
-	})
-	if !ok || !s.eligible(writer) {
-		return false
-	}
-	a.snapshot = proto.CloneOf(best)
-	a.snapshot.WriterPort = writer
+func (s *replicationServer) Replicate(ctx context.Context, snapshot *pb.AuctionState) (*pb.Acknowledgement, error) {
+	a := &s.node.auctionState
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.snapshot = proto.CloneOf(snapshot)
 	a.needsCommit = true
-	return s.finishPending(ctx)
+	return ack("OK"), nil
 }
 
-func (s *replicationServer) Prepare(_ context.Context, req *pb.PrepareRequest) (*pb.AuctionState, error) {
-	a := &s.node.auction
+func (s *replicationServer) Commit(ctx context.Context, req *pb.CommitRequest) (*emptypb.Empty, error) {
+	a := &s.node.auctionState
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	writer := req.GetWriterPort()
-	if writer == s.node.port || !s.eligible(writer) || newerWriter(s.promisedWriter, writer) {
-		return nil, status.Error(codes.FailedPrecondition, "auction writer unavailable or fenced")
+	if a.snapshot.Seq == req.Seq && a.needsCommit {
+		a.applyStaged()
 	}
-	s.promisedWriter = writer
-	return proto.CloneOf(a.snapshot), nil
-}
-
-// syncState runs with the auction mutex held. Once staging starts, a client
-// disconnect does not interrupt the replication or commit phases.
-func (s *replicationServer) syncState(ctx context.Context) bool {
-	a := &s.node.auction
-	ctx = context.WithoutCancel(ctx)
-	snapshot := proto.CloneOf(a.snapshot)
-	if !contactFollowers(ctx, s.node, func(ctx context.Context, client pb.ReplicateServiceClient) (bool, bool) {
-		reply, err := client.Replicate(ctx, snapshot)
-		return true, err == nil && reply.GetReply() == "success"
-	}, func(bool) {}) || !s.eligible(snapshot.WriterPort) {
-		return false
-	}
-	a.committed = snapshot
-	return contactFollowers(ctx, s.node, func(ctx context.Context, client pb.ReplicateServiceClient) (bool, bool) {
-		_, err := client.Commit(ctx, &pb.CommitRequest{Seq: snapshot.Seq, WriterPort: snapshot.WriterPort})
-		return true, err == nil
-	}, func(bool) {})
-}
-
-func (s *replicationServer) finishPending(ctx context.Context) bool {
-	a := &s.node.auction
-	if !a.needsCommit {
-		return true
-	}
-	if !s.syncState(ctx) {
-		s.scheduleRepair()
-		return false
-	}
-	a.needsCommit = false
-	return true
-}
-
-// Repair a partially staged write even if no further client request reaches
-// the leader after election removes a crashed follower from the membership.
-func (s *replicationServer) scheduleRepair() {
-	if s.repairing {
-		return
-	}
-	s.repairing = true
-	go func() {
-		a := &s.node.auction
-		ticker := time.NewTicker(a.rpcTimeout)
-		defer ticker.Stop()
-		for range ticker.C {
-			a.mu.Lock()
-			if a.needsCommit && s.eligible(s.node.port) {
-				if s.syncState(context.Background()) {
-					a.needsCommit = false
-				}
-			}
-			done := !a.needsCommit || s.node.GetLeader() != s.node.port
-			if done {
-				s.repairing = false
-			}
-			a.mu.Unlock()
-			if done {
-				return
-			}
-		}
-	}()
-}
-
-func (s *replicationServer) Commit(_ context.Context, req *pb.CommitRequest) (*emptypb.Empty, error) {
-	a := &s.node.auction
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	writer := req.GetWriterPort()
-	if writer == s.node.port || !s.eligible(writer) || s.promisedWriter != writer ||
-		a.snapshot.WriterPort != writer || a.snapshot.Seq != req.GetSeq() {
-		return nil, status.Error(codes.FailedPrecondition, "commit does not match staged auction state")
-	}
-	a.committed = proto.CloneOf(a.snapshot)
 	return &emptypb.Empty{}, nil
 }
 
-func (s *replicationServer) Replicate(_ context.Context, snapshot *pb.AuctionState) (*pb.Acknowledgement, error) {
-	a := &s.node.auction
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	writer := snapshot.GetWriterPort()
-	if writer == s.node.port || !s.eligible(writer) || newerWriter(s.promisedWriter, writer) {
-		return nil, status.Error(codes.FailedPrecondition, "auction writer unavailable or fenced")
+func (n *Node) resyncLocked() {
+	a := &n.auctionState
+	// If this node has been elected leader, it may have a pending write that was not committed before the election.
+	// If so, it must finish the write before accepting new bids.
+	if a.needsCommit {
+		a.applyStaged()
 	}
-	switch {
-	case newerWriter(writer, a.snapshot.WriterPort), writer == a.snapshot.WriterPort && snapshot.Seq > a.snapshot.Seq:
-		a.snapshot = proto.CloneOf(snapshot)
-	case !proto.Equal(snapshot, a.snapshot):
-		return ack("fail"), nil
-	}
-	s.promisedWriter = writer
-	return ack("success"), nil
+
+	a.closeIfDue()
+	n.replicateAndCommit()
+	a.syncedLeader = n.port
 }
 
-func contactFollowers[T any](ctx context.Context, n *Node, call func(context.Context, pb.ReplicateServiceClient) (T, bool), accept func(T)) bool {
-	// Bound the wait for crash-stopped replicas using the healthy RPC round-trip bound.
-	ctx, cancel := context.WithTimeout(ctx, n.auction.rpcTimeout)
-	defer cancel()
-	type vote struct {
-		value T
-		ok    bool
+func (n *Node) replicateAndCommit() error {
+	st := proto.CloneOf(n.auctionState.snapshot)
+	err_rep := n.toAllFollowers(func(ctx context.Context, c pb.ReplicateServiceClient) error {
+		_, err := c.Replicate(ctx, st)
+		return err
+	})
+	if err_rep != nil {
+		log.Printf("Node on port %d failed to replicate to all followers: %v", n.port, err_rep)
+		return err_rep
 	}
-	peers := n.GetPeers()
-	votes := make(chan vote, len(peers))
-	remaining := 0
-	for _, peer := range peers {
-		if peer == n.port {
+
+	// All followers have acknowledged the replication, so we can now commit the state locally.
+	n.auctionState.applyStaged()
+
+	// Now we can commit the state on all followers.
+	err_com := n.toAllFollowers(func(ctx context.Context, c pb.ReplicateServiceClient) error {
+		_, err := c.Commit(ctx, &pb.CommitRequest{Seq: st.Seq})
+		return err
+	})
+	if err_com != nil {
+		log.Printf("Node on port %d failed to commit to all followers: %v", n.port, err_com)
+		return err_com
+	}
+
+	return nil
+}
+
+func (n *Node) toAllFollowers(call func(context.Context, pb.ReplicateServiceClient) error) error {
+	var wg sync.WaitGroup
+	for _, peer := range n.GetPeers() {
+		conn := n.peerConns[peer]
+		if peer == n.port || conn == nil {
 			continue
 		}
-		conn := n.peerConns[peer]
-		if conn == nil {
-			return false
-		}
-		remaining++
-		go func(client pb.ReplicateServiceClient) {
-			value, ok := call(ctx, client)
-			votes <- vote{value, ok}
-		}(pb.NewReplicateServiceClient(conn))
-	}
-	for ; remaining > 0; remaining-- {
-		select {
-		case v := <-votes:
-			if !v.ok {
-				return false
+
+		wg.Add(1)
+		go func(peer int32, client pb.ReplicateServiceClient) {
+			defer wg.Done()
+
+			ctx, cancel := context.WithTimeout(context.Background(), n.auctionState.rpcTimeout)
+			defer cancel()
+			err := call(ctx, client)
+			if err != nil {
+				log.Printf("Node on port %d failed to replicate to peer %d: %v", n.port, peer, err)
 			}
-			accept(v.value)
-		case <-ctx.Done():
-			return false
-		}
+		}(peer, pb.NewReplicateServiceClient(conn))
 	}
-	return true
+
+	wg.Wait()
+	return nil
+}
+
+func (a *auctionState) applyStaged() {
+	a.committed = proto.CloneOf(a.snapshot)
+	a.needsCommit = false
+	close(a.commitSignal)
+	a.commitSignal = make(chan struct{})
+}
+
+// This loop runs every second and checks if it has been elected leader.
+// If it has and it hasnt realized yet, it will resync with the other nodes to ensure it has the latest state.
+func (n *Node) leaderLoop() {
+	for {
+		time.Sleep(time.Second)
+
+		// If we are not the leader or we are in the process of electing we don't need to do anything
+		if n.GetLeader() != n.port || n.IsElecting() {
+			continue
+		}
+
+		a := &n.auctionState
+		a.mu.Lock()
+		if a.syncedLeader != n.port {
+			// If we are the leader yet we haven't synced with the other nodes yet, we need to do that now
+			n.resyncLocked()
+		} else if !a.snapshot.Closed && !time.Now().Before(a.deadline) {
+			// If the auction has finished, we need to close it and replicate that to the other nodes
+			a.closeIfDue()
+			n.replicateAndCommit()
+		}
+		a.mu.Unlock()
+	}
 }
